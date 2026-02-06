@@ -62,6 +62,18 @@ app:
   jwt:
     secret: ${JWT_SECRET:my-super-secret-jwt-key-for-booking-management-system-development-only-32-bytes-minimum-length-512-bits}
     expiration-ms: 86400000  # 24 hours
+  rabbitmq:
+    enabled: ${RABBITMQ_ENABLED:true}
+    exchange: booking.events
+    queue: booking.notifications
+    routing-key: booking.#
+
+# RabbitMQ
+spring.rabbitmq:
+  host: ${RABBITMQ_HOST:localhost}
+  port: ${RABBITMQ_PORT:5672}
+  username: ${RABBITMQ_USERNAME:guest}
+  password: ${RABBITMQ_PASSWORD:guest}
 
 logging:
   level:

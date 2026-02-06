@@ -9,6 +9,7 @@ import com.booking.entity.BookingStatus;
 import com.booking.entity.Resource;
 import com.booking.entity.Role;
 import com.booking.entity.User;
+import com.booking.event.BookingEventPublisher;
 import com.booking.exception.BookingConflictException;
 import com.booking.exception.BookingValidationException;
 import com.booking.exception.ForbiddenException;
@@ -37,6 +38,7 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final ResourceRepository resourceRepository;
     private final UserRepository userRepository;
+    private final BookingEventPublisher eventPublisher;
 
     @Value("${app.booking.min-duration-minutes:15}")
     private int minDurationMinutes;
@@ -46,10 +48,12 @@ public class BookingService {
 
     public BookingService(BookingRepository bookingRepository,
                           ResourceRepository resourceRepository,
-                          UserRepository userRepository) {
+                          UserRepository userRepository,
+                          BookingEventPublisher eventPublisher) {
         this.bookingRepository = bookingRepository;
         this.resourceRepository = resourceRepository;
         this.userRepository = userRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -92,6 +96,10 @@ public class BookingService {
         Booking saved = bookingRepository.save(booking);
         log.info("Booking {} created successfully for resource {} by user {}", 
                 saved.getId(), resource.getName(), principal.getEmail());
+        
+        // Publish event for notification-service
+        eventPublisher.publishBookingCreated(saved);
+        
         return toResponse(saved);
     }
 
@@ -177,6 +185,10 @@ public class BookingService {
 
         booking.setStatus(BookingStatus.CANCELED);
         Booking saved = bookingRepository.save(booking);
+        
+        // Publish event for notification-service
+        eventPublisher.publishBookingCanceled(saved);
+        
         return toResponse(saved);
     }
 

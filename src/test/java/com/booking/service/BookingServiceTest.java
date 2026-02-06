@@ -5,6 +5,7 @@ import com.booking.dto.booking.BookingResponse;
 import com.booking.dto.booking.CreateBookingRequest;
 import com.booking.dto.common.PageResponse;
 import com.booking.entity.*;
+import com.booking.event.BookingEventPublisher;
 import com.booking.exception.BookingConflictException;
 import com.booking.exception.BookingValidationException;
 import com.booking.exception.ForbiddenException;
@@ -47,6 +48,9 @@ class BookingServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private BookingEventPublisher eventPublisher;
 
     @InjectMocks
     private BookingService bookingService;
