@@ -88,6 +88,27 @@ src/main/java/com/booking/
 - `capacityMin` — minimum capacity
 - `page`, `size`, `sort` — pagination
 
+### Booking API (`/api/v1/bookings`)
+
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|--------|
+| POST | `/` | Create a booking | Authenticated |
+| GET | `/` | List bookings (USER: own, ADMIN: all) | Authenticated |
+| GET | `/{id}` | Get booking by ID | Owner/ADMIN |
+| POST | `/{id}/cancel` | Cancel a booking | Owner/ADMIN |
+
+**Filters for GET /bookings:**
+- `resourceId` — filter by resource
+- `status` — CREATED, CONFIRMED, CANCELED
+- `dateFrom`, `dateTo` — date range filter
+- `page`, `size`, `sort` — pagination
+
+**Booking Rules:**
+- Duration: min 15 minutes, max 8 hours
+- Must be in the future
+- No overlapping bookings (returns 409 Conflict)
+- Canceled bookings free up the time slot
+
 ---
 
 ## Authentication

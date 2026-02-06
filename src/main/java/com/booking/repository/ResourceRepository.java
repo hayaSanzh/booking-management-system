@@ -11,4 +11,6 @@ import org.springframework.stereotype.Repository;
 public interface ResourceRepository extends JpaRepository<Resource, Long>, JpaSpecificationExecutor<Resource> {
     
     Page<Resource> findByIsActiveTrue(Pageable pageable);
+
+    java.util.Optional<Resource> findByIdAndIsActiveTrue(Long id);
 }

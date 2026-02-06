@@ -61,4 +61,13 @@ public class UserPrincipal implements UserDetails {
     public boolean isEnabled() {
         return isActive;
     }
+
+    public com.booking.entity.Role getRole() {
+        String authority = authorities.stream()
+                .map(GrantedAuthority::getAuthority)
+                .filter(a -> a.startsWith("ROLE_"))
+                .findFirst()
+                .orElse("ROLE_USER");
+        return com.booking.entity.Role.valueOf(authority.replace("ROLE_", ""));
+    }
 }
