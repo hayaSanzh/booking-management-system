@@ -15,6 +15,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - bms-network
 
   app:
     build: .
@@ -23,12 +25,26 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      SPRING_PROFILES_ACTIVE: dev
+      SPRING_PROFILES_ACTIVE: prod
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/booking_db
       SPRING_DATASOURCE_USERNAME: booking_user
       SPRING_DATASOURCE_PASSWORD: booking_pass
+      APP_JWT_SECRET: ${JWT_SECRET:-cHJvZHVjdGlvbi1zZWNyZXQta2V5LWZvci1ib29raW5nLW1hbmFnZW1lbnQtc3lzdGVtLXRoYXQtbmVlZHMtdG8tYmUtYXQtbGVhc3QtNTEyLWJpdHMtbG9uZy1mb3ItaG1hYy1zaGE=}
     ports:
       - "8080:8080"
+    networks:
+      - bms-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  bms-network:
+    driver: bridge
 
 volumes:
   postgres_data:

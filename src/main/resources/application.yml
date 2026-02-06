@@ -43,6 +43,16 @@ springdoc:
     operations-sorter: method
     tags-sorter: alpha
 
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+
 # Application settings
 app:
   booking:
@@ -50,7 +60,7 @@ app:
     max-duration-hours: 8
     cancel-before-minutes: 30
   jwt:
-    secret: ${JWT_SECRET:my-super-secret-jwt-key-for-booking-management-system-development-only-32-bytes-minimum}
+    secret: ${JWT_SECRET:my-super-secret-jwt-key-for-booking-management-system-development-only-32-bytes-minimum-length-512-bits}
     expiration-ms: 86400000  # 24 hours
 
 logging:

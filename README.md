@@ -1,143 +1,202 @@
 # Booking Management System (BMS)
 
-A monolithic REST API for resource booking.
+A production-ready REST API for booking resources (meeting rooms, equipment, etc.).
 
-## Requirements
+Built with **Spring Boot 3.2**, **PostgreSQL**, **JWT authentication**, and **Docker**.
 
-- Java 17+
-- Docker & Docker Compose
-- Maven 3.8+
+[![Java](https://img.shields.io/badge/Java-17+-blue.svg)](https://openjdk.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2-green.svg)](https://spring.io/projects/spring-boot)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue.svg)](https://www.postgresql.org/)
+
+---
+
+## Features
+
+- **JWT Authentication** — Secure login with 24-hour tokens
+- **Role-Based Access** — USER and ADMIN roles
+- **Resource Management** — CRUD for bookable resources (ADMIN only)
+- **Booking System** — Create, view, and cancel bookings
+- **Conflict Detection** — Prevents double-booking with overlap check
+- **Validation** — Duration limits (15min–8h), future-only bookings
+- **Soft Delete** — Resources and canceled bookings are preserved
+- **Filtering & Pagination** — On all list endpoints
+- **OpenAPI/Swagger** — Auto-generated API documentation
+
+---
+
+## Architecture
+
+\`\`\`
+┌─────────────────────────────────────────────────────────────────┐
+│                        REST API Layer                          │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────────────┐ │
+│  │   Auth   │  │  Users   │  │Resources │  │    Bookings      │ │
+│  │Controller│  │Controller│  │Controller│  │   Controller     │ │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └───────┬──────────┘ │
+└───────┼─────────────┼───────────────┼──────────────┼────────────┘
+        │             │               │              │
+┌───────▼─────────────▼───────────────▼──────────────▼────────────┐
+│                       Service Layer                             │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────────────┐ │
+│  │   Auth   │  │   User   │  │ Resource │  │     Booking      │ │
+│  │ Service  │  │ Service  │  │ Service  │  │    Service       │ │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └───────┬──────────┘ │
+└───────┼─────────────┼───────────────┼──────────────┼────────────┘
+        │             │               │              │
+┌───────▼─────────────▼───────────────▼──────────────▼────────────┐
+│                     Repository Layer (JPA)                       │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                    ┌─────────▼─────────┐
+                    │   PostgreSQL 16   │
+                    └───────────────────┘
+\`\`\`
+
+---
 
 ## Quick Start
 
-### 1. Run with Docker Compose
-```bash
-docker-compose up -d
-```
+### One Command Run
 
-### 2. Local Development
+\`\`\`bash
+docker compose up -d
+\`\`\`
 
-```bash
-docker-compose up -d postgres
+This starts both PostgreSQL and the application. Access at http://localhost:8080
 
+### Local Development
+
+\`\`\`bash
+# Start database only
+docker compose up -d postgres
+
+# Run application
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
-```
+\`\`\`
 
-## Available URLs
+### Run Tests
 
-- **API:** http://localhost:8080/api/v1
+\`\`\`bash
+./mvnw test
+\`\`\`
+
+---
+
+## 📚 API Documentation
+
 - **Swagger UI:** http://localhost:8080/swagger-ui.html
 - **OpenAPI JSON:** http://localhost:8080/v3/api-docs
 
-## Profiles
+### Endpoints
 
-- `dev` — development (verbose logging, local DB)
-- `test` — testing (H2 in-memory)
+| Endpoint | Method | Description | Access |
+|----------|--------|-------------|--------|
+| \`/api/v1/auth/register\` | POST | Register new user | Public |
+| \`/api/v1/auth/login\` | POST | Login, get JWT | Public |
+| \`/api/v1/auth/me\` | GET | Current user info | Auth |
+| \`/api/v1/users/me\` | GET/PATCH | User profile | Auth |
+| \`/api/v1/resources\` | GET | List resources | Auth |
+| \`/api/v1/resources/{id}\` | GET | Get resource | Auth |
+| \`/api/v1/resources\` | POST | Create resource | ADMIN |
+| \`/api/v1/resources/{id}\` | PUT/DELETE | Manage resource | ADMIN |
+| \`/api/v1/bookings\` | GET | List bookings* | Auth |
+| \`/api/v1/bookings/{id}\` | GET | Get booking | Owner/ADMIN |
+| \`/api/v1/bookings\` | POST | Create booking | Auth |
+| \`/api/v1/bookings/{id}/cancel\` | POST | Cancel booking | Owner/ADMIN |
 
-## Project Structure
-
-```
-src/main/java/com/booking/
-├── config/          # Configuration (Security, OpenAPI)
-├── controller/      # REST controllers
-├── dto/             # Data Transfer Objects
-├── entity/          # JPA entities
-├── exception/       # Exception handling
-├── repository/      # JPA repositories
-├── service/         # Business logic
-└── security/        # JWT, filters
-```
-
-## Database
-
-- PostgreSQL 16
-- Flyway migrations in `src/main/resources/db/migration/`
+*USER sees only own bookings, ADMIN sees all
 
 ---
 
-## API Endpoints
+## 📝 API Examples
 
-### Auth API (`/api/v1/auth`)
+### Register
+\`\`\`bash
+curl -X POST http://localhost:8080/api/v1/auth/register \\
+  -H "Content-Type: application/json" \\
+  -d '{"email":"user@example.com","password":"pass123","fullName":"Nurmukhanbet Sanzhar"}'
+\`\`\`
 
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| POST | `/register` | Register a new user | Public |
-| POST | `/login` | Authenticate, get JWT | Public |
-| GET | `/me` | Current user info | Authenticated |
+### Login
+\`\`\`bash
+curl -X POST http://localhost:8080/api/v1/auth/login \\
+  -H "Content-Type: application/json" \\
+  -d '{"email":"user@example.com","password":"pass123"}'
+\`\`\`
 
-### User API (`/api/v1/users`)
+### Create Booking
+\`\`\`bash
+curl -X POST http://localhost:8080/api/v1/bookings \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer YOUR_TOKEN" \\
+  -d '{"resourceId":1,"startAt":"2026-02-10T10:00:00","endAt":"2026-02-10T11:00:00"}'
+\`\`\`
 
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| GET | `/me` | Current user profile | Authenticated |
-| PATCH | `/me` | Update profile (fullName) | Authenticated |
-
-### Resource API (`/api/v1/resources`)
-
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| GET | `/` | List resources (filters + pagination) | Authenticated |
-| GET | `/{id}` | Get resource by ID | Authenticated |
-| POST | `/` | Create resource | ADMIN |
-| PUT | `/{id}` | Update resource | ADMIN |
-| DELETE | `/{id}` | Delete resource (soft delete) | ADMIN |
-
-**Filters for GET /resources:**
-- `name` — search by name (LIKE)
-- `location` — search by location (LIKE)
-- `capacityMin` — minimum capacity
-- `page`, `size`, `sort` — pagination
-
-### Booking API (`/api/v1/bookings`)
-
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| POST | `/` | Create a booking | Authenticated |
-| GET | `/` | List bookings (USER: own, ADMIN: all) | Authenticated |
-| GET | `/{id}` | Get booking by ID | Owner/ADMIN |
-| POST | `/{id}/cancel` | Cancel a booking | Owner/ADMIN |
-
-**Filters for GET /bookings:**
-- `resourceId` — filter by resource
-- `status` — CREATED, CONFIRMED, CANCELED
-- `dateFrom`, `dateTo` — date range filter
-- `page`, `size`, `sort` — pagination
-
-**Booking Rules:**
-- Duration: min 15 minutes, max 8 hours
-- Must be in the future
-- No overlapping bookings (returns 409 Conflict)
-- Canceled bookings free up the time slot
-
----
-
-## Authentication
-
-JWT token (24 hours). Pass in header:
-```
-Authorization: Bearer <token>
-```
-
-### Roles
-- **USER** — book resources
-- **ADMIN** — manage resources + all USER permissions
-
----
-
-## Error Format
-
-All errors are returned in a unified format:
-
-```json
+### Conflict Response (409)
+\`\`\`json
 {
   "timestamp": "2026-02-06T12:00:00",
-  "status": 400,
-  "error": "BAD_REQUEST",
-  "message": "Validation failed",
-  "path": "/api/v1/resources",
-  "errors": [
-    {"field": "name", "message": "Name is required"}
-  ]
+  "status": 409,
+  "error": "CONFLICT",
+  "message": "Booking conflict: the requested time slot overlaps",
+  "path": "/api/v1/bookings"
 }
-```
+\`\`\`
 
+---
+
+## ⚙️ Configuration
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| \`SPRING_DATASOURCE_URL\` | Database URL | \`jdbc:postgresql://localhost:5432/booking_db\` |
+| \`JWT_SECRET\` | JWT signing key (64+ chars) | dev key |
+| \`APP_BOOKING_MIN_DURATION_MINUTES\` | Min duration | \`15\` |
+| \`APP_BOOKING_MAX_DURATION_HOURS\` | Max duration | \`8\` |
+
+---
+
+## 🧪 Testing
+
+### Unit Tests
+- BookingService: overlap detection, validations, cancel logic
+
+### Integration Tests (Testcontainers)
+- Full API with real PostgreSQL
+- 409 Conflict scenarios
+- Role-based access
+
+---
+
+## 🔒 Booking Rules
+
+1. **Duration:** 15 min – 8 hours
+2. **Time:** Future only
+3. **Conflicts:** \`new.startAt < existing.endAt && new.endAt > existing.startAt\`
+4. **Cancel:** Owner or ADMIN, future bookings only
+
+---
+
+## 🛠️ Tech Stack
+
+- Java 17, Spring Boot 3.2.2
+- Spring Security + JWT
+- PostgreSQL 16 + Flyway
+- Docker, Testcontainers
+- SpringDoc OpenAPI
+
+---
+
+## 📁 Structure
+
+\`\`\`
+src/main/java/com/booking/
+├── config/        # Security, OpenAPI
+├── controller/    # REST endpoints
+├── dto/           # Request/Response
+├── entity/        # JPA entities
+├── exception/     # Error handling
+├── repository/    # Data access
+├── security/      # JWT, filters
+└── service/       # Business logic
+\`\`\`

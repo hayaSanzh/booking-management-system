@@ -18,6 +18,7 @@ import com.booking.repository.BookingSpecifications;
 import com.booking.repository.ResourceRepository;
 import com.booking.repository.UserRepository;
 import com.booking.security.UserPrincipal;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +30,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class BookingService {
 
@@ -55,6 +57,8 @@ public class BookingService {
      */
     @Transactional
     public BookingResponse createBooking(CreateBookingRequest request, UserPrincipal principal) {
+        log.info("Creating booking for resource {} by user {}", request.getResourceId(), principal.getEmail());
+        
         // Validate time constraints
         validateBookingTime(request.getStartAt(), request.getEndAt());
 
@@ -67,6 +71,8 @@ public class BookingService {
                 request.getResourceId(), 
                 request.getStartAt(), 
                 request.getEndAt())) {
+            log.warn("Booking conflict for resource {} at {} - {}", 
+                    request.getResourceId(), request.getStartAt(), request.getEndAt());
             throw new BookingConflictException(request.getResourceId());
         }
 
@@ -84,6 +90,8 @@ public class BookingService {
         booking.setStatus(BookingStatus.CREATED);
 
         Booking saved = bookingRepository.save(booking);
+        log.info("Booking {} created successfully for resource {} by user {}", 
+                saved.getId(), resource.getName(), principal.getEmail());
         return toResponse(saved);
     }
 
