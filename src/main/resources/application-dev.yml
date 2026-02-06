@@ -1,0 +1,23 @@
+# Development Profile
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/booking_db
+    username: booking_user
+    password: booking_pass
+
+  jpa:
+    show-sql: true
+
+  flyway:
+    clean-disabled: false
+
+logging:
+  level:
+    com.booking: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
