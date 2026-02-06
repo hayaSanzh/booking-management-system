@@ -50,7 +50,7 @@ app:
     max-duration-hours: 8
     cancel-before-minutes: 30
   jwt:
-    secret: ${JWT_SECRET:default-secret-key-for-development-only-change-in-production}
+    secret: ${JWT_SECRET:my-super-secret-jwt-key-for-booking-management-system-development-only-32-bytes-minimum}
     expiration-ms: 86400000  # 24 hours
 
 logging:
